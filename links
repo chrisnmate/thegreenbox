@@ -1,0 +1,12 @@
+# Prometheus
+http://192.168.178.38:9090/ # Prometheus
+
+# Grafana
+http://192.168.178.38:3000/ # Grafana
+
+# Metriken eines Beispiel Scripts der die Metriken via webserver bereit stellt
+http://192.168.178.38:8000/ # Metrik Server Script (thegreenbox)
+
+# Node Exporter um Metriken des Raspberry PI im Prometheus/Grafana anzuzeigen
+http://192.168.178.38:9100/ # Node Exporter
+http://192.168.178.38:9100/metrics
