@@ -10,7 +10,9 @@ import mh_z19
 import RPi.GPIO as GPIO
 import logging
 from datetime import datetime
+import requests
 
+PUSHGATEWAY_URL = 'http://localhost:9091/metrics/job/environment'
 FONT_PATH="/home/thegreenbox/thegreenbox/git/thegreenbox/sensors/fonts/"
 FONT_NAME="RobotoCondensed-ExtraBold.ttf"
 font_path=FONT_PATH+FONT_NAME
@@ -111,13 +113,34 @@ while True:
     if co2['co2'] < 1000:
       log_message = f"CO2900DOWN: 'co2': {co2['co2']} : Temp: {temperature:.1f}C : Hum: {humidity:.1f}% : VPD: {vpd_rounded}"
       logging.info(log_message)
+      print(f"'co2': {co2['co2']} : Temp: {temperature:.1f}C : Hum: {humidity:.1f}% : VPD: {vpd_rounded}")
       GPIO.output(relay_pin, GPIO.HIGH)
-      GPIO.output(relay_pin_abluft, GPIO.HIGH)
+      GPIO.output(relay_pin_abluft, GPIO.LOW)
     else:
       log_message = f"CO2900UP: 'co2': {co2['co2']} : Temp: {temperature:.1f}C : Hum: {humidity:.1f}% : VPD: {vpd_rounded}"
       logging.info(log_message)
+      print(f"'co2': {co2['co2']} : Temp: {temperature:.1f}C : Hum: {humidity:.1f}% : VPD: {vpd_rounded}")
       GPIO.output(relay_pin, GPIO.HIGH)
-      GPIO.output(relay_pin_abluft, GPIO.HIGH)
+      GPIO.output(relay_pin_abluft, GPIO.LOW)
+
+    data = f'''
+    # TYPE temperature gauge
+    greenbox_temperature {temperature}
+    # TYPE humidity gauge
+    greenbox_humidity {humidity}
+    # TYPE VPD gauge
+    greenbox_vpd {vpd_rounded}
+    # TYPE CO2 gauge
+    greebox_co2 {co2['co2']}
+    '''
+
+    # Sende die Daten an den Pushgateway
+    try:
+      response = requests.post(PUSHGATEWAY_URL, data=data)
+      print(f'Response Code: {response.status_code}')
+      print('Response Content:', response.text)
+    except Exception as e:
+      print('Fehler beim Senden der Daten:', str(e))
 
     # VPD-Range-Message im oberen Balken
     draw.text((5, 1), f'{co2}', font=font, fill=255)  # Text in den oberen 15 Pixeln
